@@ -3,11 +3,10 @@
   "ingredient": {
     "item": "minecraft:beacon"
   },
-  "loops": 1,
   "results": [
     {
       "chance": 100.0,
-      "item": "balancedflight:flight_anchor"
+      "id": "balancedflight:flight_anchor"
     }
   ],
   "sequence": [
@@ -23,7 +22,7 @@
       ],
       "results": [
         {
-          "item": "minecraft:beacon"
+          "id": "minecraft:beacon"
         }
       ]
     },
@@ -39,7 +38,7 @@
       ],
       "results": [
         {
-          "item": "minecraft:beacon"
+          "id": "minecraft:beacon"
         }
       ]
     },
@@ -55,7 +54,7 @@
       ],
       "results": [
         {
-          "item": "minecraft:beacon"
+          "id": "minecraft:beacon"
         }
       ]
     },
@@ -71,7 +70,7 @@
       ],
       "results": [
         {
-          "item": "minecraft:beacon"
+          "id": "minecraft:beacon"
         }
       ]
     },
@@ -87,12 +86,12 @@
       ],
       "results": [
         {
-          "item": "minecraft:beacon"
+          "id": "minecraft:beacon"
         }
       ]
     }
   ],
-  "transitionalItem": {
-    "item": "minecraft:beacon"
+  "transitional_item": {
+    "id": "minecraft:beacon"
   }
 }

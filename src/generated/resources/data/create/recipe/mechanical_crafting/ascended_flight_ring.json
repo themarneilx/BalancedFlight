@@ -1,6 +1,7 @@
 {
   "type": "create:mechanical_crafting",
-  "acceptMirrored": false,
+  "accept_mirrored": false,
+  "category": "misc",
   "key": {
     "B": {
       "item": "minecraft:netherite_block"
@@ -28,6 +29,8 @@
     " GGGGG "
   ],
   "result": {
-    "item": "balancedflight:ascended_flight_ring"
-  }
+    "count": 1,
+    "id": "balancedflight:ascended_flight_ring"
+  },
+  "show_notification": false
 }

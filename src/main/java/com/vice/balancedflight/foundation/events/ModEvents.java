@@ -1,15 +1,15 @@
 package com.vice.balancedflight.foundation.events;
 
 import com.vice.balancedflight.foundation.network.BalancedFlightNetwork;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
 public class ModEvents
 {
     @SubscribeEvent
-    public static void onCommonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(BalancedFlightNetwork::registerMessage);
+    public static void registerPayloadHandlers(RegisterPayloadHandlersEvent event) {
+        BalancedFlightNetwork.registerMessages(event);
     }
 }

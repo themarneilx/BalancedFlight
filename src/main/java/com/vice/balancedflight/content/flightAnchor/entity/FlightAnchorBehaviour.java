@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.Level;
@@ -20,7 +21,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class FlightAnchorBehaviour extends BlockEntityBehaviour
@@ -102,7 +102,7 @@ public class FlightAnchorBehaviour extends BlockEntityBehaviour
             if (entity.beamSections.size() > 0)
                 return;
 
-            entity.beamSections.add(new BeaconBlockEntity.BeaconBeamSection(DyeColor.WHITE.getTextureDiffuseColors()));
+            entity.beamSections.add(new BeaconBlockEntity.BeaconBeamSection(DyeColor.WHITE.getTextureDiffuseColor()));
             return;
         }
 
@@ -124,16 +124,16 @@ public class FlightAnchorBehaviour extends BlockEntityBehaviour
 
         for(int i1 = 0; i1 < 10 && blockpos.getY() <= l; ++i1) {
             BlockState blockstate = level.getBlockState(blockpos);
-            float[] afloat = blockstate.getBeaconColorMultiplier(level, blockpos, blockPos);
-            if (afloat != null) {
+            Integer color = blockstate.getBeaconColorMultiplier(level, blockpos, blockPos);
+            if (color != null) {
                 if (entity.checkingBeamSections.size() <= 1) {
-                    beaconblockentity$beaconbeamsection = new BeaconBlockEntity.BeaconBeamSection(afloat);
+                    beaconblockentity$beaconbeamsection = new BeaconBlockEntity.BeaconBeamSection(color);
                     entity.checkingBeamSections.add(beaconblockentity$beaconbeamsection);
                 } else if (beaconblockentity$beaconbeamsection != null) {
-                    if (Arrays.equals(afloat, beaconblockentity$beaconbeamsection.getColor())) {
+                    if (color == beaconblockentity$beaconbeamsection.getColor()) {
                         beaconblockentity$beaconbeamsection.increaseHeight();
                     } else {
-                        beaconblockentity$beaconbeamsection = new BeaconBlockEntity.BeaconBeamSection(new float[]{(beaconblockentity$beaconbeamsection.getColor()[0] + afloat[0]) / 2.0F, (beaconblockentity$beaconbeamsection.getColor()[1] + afloat[1]) / 2.0F, (beaconblockentity$beaconbeamsection.getColor()[2] + afloat[2]) / 2.0F});
+                        beaconblockentity$beaconbeamsection = new BeaconBlockEntity.BeaconBeamSection(FastColor.ARGB32.average(beaconblockentity$beaconbeamsection.getColor(), color));
                         entity.checkingBeamSections.add(beaconblockentity$beaconbeamsection);
                     }
                 }

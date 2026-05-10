@@ -1,8 +1,8 @@
 package com.vice.balancedflight.foundation.util;
 
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.world.level.ItemLike;
 
@@ -11,12 +11,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class CustomRecipeBuilder
 {
-    Consumer<FinishedRecipe> consumer;
+    RecipeOutput consumer;
     ItemLike BlockItem;
 
     private final HashMap<ItemLike, Character> definitionLookup = new HashMap<>();
@@ -24,7 +23,7 @@ public class CustomRecipeBuilder
 
     private ItemLike UnlockedBy;
 
-    public CustomRecipeBuilder(Consumer<FinishedRecipe> consumer, ItemLike BlockItem)
+    public CustomRecipeBuilder(RecipeOutput consumer, ItemLike BlockItem)
     {
         this.consumer = consumer;
         this.BlockItem = BlockItem;

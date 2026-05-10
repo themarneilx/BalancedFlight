@@ -1,6 +1,5 @@
 package com.vice.balancedflight;
 
-import com.simibubi.create.AllCreativeModeTabs;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.item.ItemDescription;
 import com.simibubi.create.foundation.item.KineticStats;
@@ -13,7 +12,6 @@ import com.vice.balancedflight.content.angelRing.FlightRing;
 import com.vice.balancedflight.content.flightAnchor.FlightAnchorBlock;
 import com.vice.balancedflight.content.flightAnchor.FlightAnchorItem;
 import com.vice.balancedflight.content.flightAnchor.entity.FlightAnchorEntity;
-import com.vice.balancedflight.content.flightAnchor.render.FlightAnchorKineticInstance;
 import com.vice.balancedflight.foundation.RegistrateExtensions;
 import com.vice.balancedflight.foundation.config.BalancedFlightConfig;
 import com.vice.balancedflight.foundation.data.recipe.BalancedFlightRecipeGen;
@@ -22,20 +20,23 @@ import net.createmod.catnip.lang.FontHelper;
 import net.createmod.ponder.foundation.PonderIndex;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -44,7 +45,7 @@ import org.apache.logging.log4j.Logger;
 public class BalancedFlight {
     public static final String MODID = "balancedflight";
     public static final Logger LOGGER = LogManager.getLogger();
-    public static final CreateRegistrate CREATE_REGISTRATE = com.simibubi.create.foundation.data.CreateRegistrate.create(BalancedFlight.MODID);
+    public static final CreateRegistrate CREATE_REGISTRATE = createRegistrate();
 
     public static final BlockEntry<? extends Block> FLIGHT_ANCHOR_BLOCK = BalancedFlight.CREATE_REGISTRATE
             .object("flight_anchor")
@@ -60,9 +61,7 @@ public class BalancedFlight {
 
     public static final BlockEntityEntry<FlightAnchorEntity> FLIGHT_ANCHOR_BLOCK_ENTITY = BalancedFlight.CREATE_REGISTRATE
             .blockEntity("flight_anchor", FlightAnchorEntity::new)
-            .visual(() -> FlightAnchorKineticInstance::new)
             .validBlock(FLIGHT_ANCHOR_BLOCK)
-            .renderer(() -> AllGeckoRenderers.FlightAnchorGeckoRenderer.TileRenderer::apply)
             .register();
 
     public static final ItemEntry<? extends Item> ASCENDED_FLIGHT_RING = BalancedFlight.CREATE_REGISTRATE
@@ -70,40 +69,44 @@ public class BalancedFlight {
             .initialProperties(() -> new Item.Properties().stacksTo(1))
             .register();
 
-    public BalancedFlight() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
+    public BalancedFlight(IEventBus modEventBus, ModContainer modContainer) {
+        IEventBus forgeEventBus = NeoForge.EVENT_BUS;
 
         CREATE_REGISTRATE.registerEventListeners(modEventBus);
 
-        BalancedFlightConfig.init();
-        MinecraftForge.EVENT_BUS.register(this);
+        modContainer.registerConfig(ModConfig.Type.COMMON, BalancedFlightConfig.ConfigSpec, "balanced_flight.toml");
 
         AllLangMessages.init();
         AllCreativeTabs.register(modEventBus);
 
         modEventBus.addListener(EventPriority.LOWEST, BalancedFlight::gatherData);
 
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> BalancedFlightClient.onCtorClient(modEventBus, forgeEventBus));
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            BalancedFlightClient.onCtorClient(modEventBus, forgeEventBus);
+        }
     }
 
     public static void gatherData(GatherDataEvent event) {
-        CREATE_REGISTRATE.addDataGenerator(ProviderType.LANG, prov -> {
-            prov.add(AllCreativeTabs.CREATIVE_TAB.get(), "Create: Balanced Flight");
-            prov.add("curios.identifier.flight_ring", "Flight Ring");
-        });
-
         DataGenerator gen = event.getGenerator();
         PackOutput output = gen.getPackOutput();
         if (event.includeServer()) {
-            gen.addProvider(true, new BalancedFlightRecipeGen(output));
+            gen.addProvider(true, new BalancedFlightRecipeGen(output, event.getLookupProvider()));
         }
     }
 
     static {
-        CREATE_REGISTRATE.setCreativeTab(AllCreativeModeTabs.BASE_CREATIVE_TAB);
+        CREATE_REGISTRATE.addDataGenerator(ProviderType.LANG, prov -> {
+            prov.add(AllCreativeTabs.CREATIVE_TAB.get(), "Create: Balanced Flight");
+            prov.add("curios.identifier.flight_ring", "Flight Ring");
+        });
         CREATE_REGISTRATE.setTooltipModifierFactory((item) -> new ItemDescription.Modifier(item, FontHelper.Palette.STANDARD_CREATE)
                 .andThen(TooltipModifier.mapNull(KineticStats.create(item)))
         );
+    }
+
+    private static CreateRegistrate createRegistrate() {
+        CreateRegistrate registrate = CreateRegistrate.create(BalancedFlight.MODID);
+        registrate.defaultCreativeTab((ResourceKey<CreativeModeTab>) null);
+        return registrate;
     }
 }

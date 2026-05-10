@@ -6,7 +6,8 @@ import com.simibubi.create.content.processing.sequenced.SequencedAssemblyRecipeB
 import com.simibubi.create.foundation.data.recipe.*;
 import com.simibubi.create.api.data.recipe.*;
 import com.vice.balancedflight.BalancedFlight;
-import net.createmod.catnip.platform.CatnipServices;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
@@ -15,6 +16,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -22,8 +24,8 @@ public class BalancedFlightRecipeGen extends MechanicalCraftingRecipeGen {
     GeneratedRecipe ASCENDED_FLIGHT_RING;
     GeneratedRecipe FLIGHT_ANCHOR;
 
-    public BalancedFlightRecipeGen(PackOutput dataGenerator) {
-        super(dataGenerator, BalancedFlight.MODID);
+    public BalancedFlightRecipeGen(PackOutput dataGenerator, CompletableFuture<HolderLookup.Provider> registries) {
+        super(dataGenerator, registries, BalancedFlight.MODID);
 
         ASCENDED_FLIGHT_RING = mechanicalCrafting(BalancedFlight.ASCENDED_FLIGHT_RING::get, 1, "", (b) -> b
                 .key('G', Ingredient.of(Blocks.GOLD_BLOCK))
@@ -60,7 +62,7 @@ public class BalancedFlightRecipeGen extends MechanicalCraftingRecipeGen {
     GeneratedRecipe mechanicalCrafting(Supplier<ItemLike> result, int amount, String suffix, UnaryOperator<MechanicalCraftingRecipeBuilder> builder) {
         return register(consumer -> {
             MechanicalCraftingRecipeBuilder b = builder.apply(MechanicalCraftingRecipeBuilder.shapedRecipe(result.get(), amount));
-            ResourceLocation location = Create.asResource("mechanical_crafting/" + CatnipServices.REGISTRIES.getKeyOrThrow(result.get().asItem()).getPath() + suffix);
+            ResourceLocation location = Create.asResource("mechanical_crafting/" + BuiltInRegistries.ITEM.getKey(result.get().asItem()).getPath() + suffix);
             b.build(consumer, location);
         });
     }

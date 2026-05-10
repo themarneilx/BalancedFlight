@@ -1,67 +1,61 @@
 package com.vice.balancedflight.foundation.network;
 
-import net.minecraft.network.FriendlyByteBuf;
+import com.vice.balancedflight.BalancedFlight;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
-public class CustomNetworkMessage
+public record CustomNetworkMessage(UUID player, String message) implements CustomPacketPayload
 {
-    private final UUID player;
-    private final String message;
+    public static final Type<CustomNetworkMessage> TYPE = new Type<>(
+            ResourceLocation.fromNamespaceAndPath(BalancedFlight.MODID, "main_network")
+    );
+    public static final StreamCodec<RegistryFriendlyByteBuf, CustomNetworkMessage> STREAM_CODEC = StreamCodec.composite(
+            UUIDUtil.STREAM_CODEC,
+            CustomNetworkMessage::player,
+            ByteBufCodecs.STRING_UTF8,
+            CustomNetworkMessage::message,
+            CustomNetworkMessage::new
+    );
 
-    public CustomNetworkMessage(FriendlyByteBuf buffer)
+    public static void handle(CustomNetworkMessage payload, IPayloadContext context)
     {
-        player = buffer.readUUID();
-        message = buffer.readUtf(Short.MAX_VALUE);
-    }
-
-    public CustomNetworkMessage(UUID player, String message)
-    {
-        this.player = player;
-        this.message = message;
-    }
-
-    public void toBytes(FriendlyByteBuf buf)
-    {
-        buf.writeUUID(player);
-        buf.writeUtf(this.message);
-    }
-
-    public void handler(Supplier<NetworkEvent.Context> ctx)
-    {
-        ctx.get().enqueueWork(() ->
+        context.enqueueWork(() ->
         {
-            if ("FIRE_ROCKET".equals(this.message))
+            if ("FIRE_ROCKET".equals(payload.message()))
             {
-                FireRocket(this.player);
+                FireRocket(payload.player());
             }
         });
-        ctx.get().setPacketHandled(true);
     }
 
     public static void Send(Level world, Player player, String message) {
         if (world.isClientSide) {
-            BalancedFlightNetwork.INSTANCE.sendToServer(new CustomNetworkMessage(player.getGameProfile().getId(), message));
+            PacketDistributor.sendToServer(new CustomNetworkMessage(player.getGameProfile().getId(), message));
         }
-        if (!world.isClientSide) {
-            BalancedFlightNetwork.INSTANCE.send(
-                    PacketDistributor.PLAYER.with(
-                            () -> (ServerPlayer) player
-                    ),
-                    new CustomNetworkMessage(player.getGameProfile().getId(), "FIRE_ROCKET"));
+        if (!world.isClientSide && player instanceof ServerPlayer serverPlayer) {
+            PacketDistributor.sendToPlayer(serverPlayer, new CustomNetworkMessage(player.getGameProfile().getId(), message));
         }
     }
 
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 
     private static void FireRocket(UUID uuid)
     {

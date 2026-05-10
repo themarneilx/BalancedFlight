@@ -15,11 +15,9 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 
 @ExtensionMethod({ RegistrateExtensions.class})
-@Mod.EventBusSubscriber(modid = BalancedFlight.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class FlightAnchorBlock extends HorizontalKineticBlock implements IBE<FlightAnchorEntity>, BeaconBeamBlock, IRotate
 {
     public FlightAnchorBlock(Properties props) { super(props); }
@@ -45,9 +43,8 @@ public class FlightAnchorBlock extends HorizontalKineticBlock implements IBE<Fli
     @Override public BlockEntityType<? extends FlightAnchorEntity> getBlockEntityType() { return BalancedFlight.FLIGHT_ANCHOR_BLOCK_ENTITY.get(); }
 
     @Override public @NotNull RenderShape getRenderShape(@NotNull BlockState state) { return RenderShape.ENTITYBLOCK_ANIMATED; }
-    @Override public Direction.Axis getRotationAxis(BlockState state) { return state.getValue(HORIZONTAL_FACING).getAxis();}
+    @Override public Direction.Axis getRotationAxis(BlockState state) { return state.getValue(HORIZONTAL_FACING).getClockWise().getAxis();}
     public IRotate.SpeedLevel getMinimumRequiredSpeedLevel() {
         return SpeedLevel.MEDIUM;
     }
 }
-

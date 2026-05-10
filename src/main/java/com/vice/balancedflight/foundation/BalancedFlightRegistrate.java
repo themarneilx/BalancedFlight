@@ -1,7 +1,7 @@
 package com.vice.balancedflight.foundation;
 
 import com.tterrag.registrate.AbstractRegistrate;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.neoforged.bus.api.IEventBus;
 //
 //public class BalancedFlightRegistrate extends AbstractRegistrate<BalancedFlightRegistrate>
 //{

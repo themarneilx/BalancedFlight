@@ -6,7 +6,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
-import dev.engine_room.flywheel.api.visualization.VisualizationManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -19,19 +18,19 @@ import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.cache.texture.AnimatableTexture;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animatable.GeoAnimatable;
-import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animatable.GeoAnimatable;
+import software.bernie.geckolib.animation.AnimationState;
 import software.bernie.geckolib.event.GeoRenderEvent;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 import javax.annotation.Nullable;
 
@@ -86,7 +85,7 @@ public class GeckoCreateRenderer<T extends KineticBlockEntity & GeoAnimatable> e
         poseStack.pushPose();
         poseStack.translate(0, 0.01f, 0);
         poseStack.translate(0.5, 0, 0.5);
-        customRenderer.render(animatable, partialTick, poseStack, bufferSource, packedLight, getPackedOverlay(animatable, 0.0F));
+        customRenderer.render(animatable, partialTick, poseStack, bufferSource, packedLight, getPackedOverlay(animatable, 0.0F, partialTick));
         poseStack.popPose();
     }
 
@@ -100,9 +99,6 @@ public class GeckoCreateRenderer<T extends KineticBlockEntity & GeoAnimatable> e
     protected void renderSafe(KineticBlockEntity te, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light, int overlay)
     {
         this.renderGecko((T) te, partialTicks, ms, buffer, light);
-        if (VisualizationManager.supportsVisualization(te.getLevel()))
-            return;
-
         renderCreate(te, te.getBlockPos(), te.getBlockState(), partialTicks, ms, buffer, light, overlay);
     }
 
@@ -133,7 +129,7 @@ public class GeckoCreateRenderer<T extends KineticBlockEntity & GeoAnimatable> e
     }
 
     @Override
-    public void actuallyRender(PoseStack poseStack, T animatable, BakedGeoModel model, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+    public void actuallyRender(PoseStack poseStack, T animatable, BakedGeoModel model, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, int renderColor) {
         poseStack.pushPose();
 
         if (!isReRender) {
@@ -146,13 +142,13 @@ public class GeckoCreateRenderer<T extends KineticBlockEntity & GeoAnimatable> e
             poseStack.translate(0, 0.01f, 0);
             poseStack.translate(0.5, 0, 0.5);
             rotateBlock(getFacing(animatable), poseStack);
-            this.modelProvider.handleAnimations(animatable, instanceId, animationState);
+            this.modelProvider.handleAnimations(animatable, instanceId, animationState, partialTick);
         }
 
         this.modelRenderTranslations = new Matrix4f(poseStack.last().pose());
 
         GeoRenderer.super.actuallyRender(poseStack, animatable, model, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha);
+                packedLight, packedOverlay, renderColor);
         poseStack.popPose();
     }
 
@@ -160,20 +156,19 @@ public class GeckoCreateRenderer<T extends KineticBlockEntity & GeoAnimatable> e
      * Renders the provided {@link GeoBone} and its associated child bones
      */
     @Override
-    public void renderRecursively(PoseStack poseStack, T animatable, GeoBone bone, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+    public void renderRecursively(PoseStack poseStack, T animatable, GeoBone bone, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, int renderColor) {
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            Matrix4f localMatrix = RenderUtils.invertAndMultiplyMatrices(poseState, this.blockRenderTranslations);
+            Matrix4f localMatrix = RenderUtil.invertAndMultiplyMatrices(poseState, this.blockRenderTranslations);
             Matrix4f worldState = new Matrix4f(localMatrix);
             BlockPos pos = this.animatable.getBlockPos();
 
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
             bone.setLocalSpaceMatrix(localMatrix);
             bone.setWorldSpaceMatrix(worldState.translate(new Vector3f(pos.getX(), pos.getY(), pos.getZ())));
         }
 
-        GeoRenderer.super.renderRecursively(poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue,
-                alpha);
+        GeoRenderer.super.renderRecursively(poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, renderColor);
     }
 
     protected void rotateBlock(Direction facing, PoseStack stack) {

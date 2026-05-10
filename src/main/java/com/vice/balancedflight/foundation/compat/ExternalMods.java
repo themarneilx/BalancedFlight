@@ -1,6 +1,6 @@
 package com.vice.balancedflight.foundation.compat;
 
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 public enum ExternalMods {
     CURIOS("curios");
