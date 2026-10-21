@@ -17,6 +17,7 @@ public class BalancedFlightConfig
 
     public static ConfigValue<Boolean> disableFallDamageWhenWearingRing;
     public static ConfigValue<Boolean> disableFallDamageNearAnchor;
+    public static ConfigValue<Boolean> enableSlowFallingOnFlightLoss;
     public static ConfigValue<Boolean> disableElytraDamage;
 
     public static ConfigValue<Boolean> CreativeAnchor;
@@ -42,6 +43,9 @@ public class BalancedFlightConfig
             anchorStress = b.defineInRange("Anchor stress impact", 256, 0, Integer.MAX_VALUE);
             disableFallDamageWhenWearingRing = b.define("Disable Fall Damage When Wearing Ascended Ring", true);
             disableFallDamageNearAnchor = b.define("Disable Fall Damage Near Flight Anchor", true);
+            enableSlowFallingOnFlightLoss = b
+                    .comment("Apply 10 seconds of slow falling when Balanced Flight revokes flight while airborne. Set to false to disable it.")
+                    .define("Enable Slow Falling On Flight Loss", true);
         });
 
         builder.Block("Enhanced Elytra Mechanics", b -> {

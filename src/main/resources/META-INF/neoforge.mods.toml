@@ -48,3 +48,10 @@ config = "balancedflight.mixins.json"
     versionRange = "${geckolib_version_range}"
     ordering = "AFTER"
     side = "BOTH"
+
+[[dependencies.${mod_id}]]
+    modId = "sable"
+    type = "optional"
+    versionRange = "[1.2.0,)"
+    ordering = "AFTER"
+    side = "BOTH"

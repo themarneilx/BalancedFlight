@@ -1,0 +1,6 @@
+{
+  "selector": "balancedflight:flight_anchor",
+  "properties": {
+    "sable:mass": 4.0
+  }
+}

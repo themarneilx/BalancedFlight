@@ -1,6 +1,7 @@
 package com.vice.balancedflight.content.flightAnchor;
 
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
+import com.vice.balancedflight.AllLangMessages;
 import com.vice.balancedflight.content.flightAnchor.entity.FlightAnchorBehaviour;
 import com.vice.balancedflight.content.flightAnchor.entity.FlightAnchorEntity;
 import net.createmod.ponder.api.scene.SceneBuilder;
@@ -14,7 +15,7 @@ public class FlightAnchorPonderScene {
 
     public static void ponderScene(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
-        scene.title("flight_anchor", "Powered flight with Rotational Force");
+        scene.title("flight_anchor", AllLangMessages.ANCHOR_PONDER_TITLE);
         scene.configureBasePlate(1, 0, 5);
 
         scene.world().showSection(util.select().layer(0), Direction.UP);
@@ -22,7 +23,7 @@ public class FlightAnchorPonderScene {
         scene.world().setKineticSpeed(util.select().everywhere(), 0.0F);
 
         Selection flightAnchorSelect = util.select().position(3, 1, 2);//
-        scene.overlay().showText(90).placeNearTarget().text("The flight anchor requires an immense amount of power to operate.").pointAt(flightAnchorSelect.getCenter());
+        scene.overlay().showText(90).placeNearTarget().text(AllLangMessages.ANCHOR_PONDER_POWER).pointAt(flightAnchorSelect.getCenter());
         scene.idle(100);
 
         BlockPos flightAnchorPos = util.grid().at(3, 1, 2);
@@ -31,11 +32,11 @@ public class FlightAnchorPonderScene {
         });
 
         scene.world().setKineticSpeed(util.select().everywhere(), 32.0F);
-        scene.overlay().showText(90).placeNearTarget().text("For each RPM, you will be able to fly one block around the anchor.").pointAt(flightAnchorSelect.getCenter());
+        scene.overlay().showText(90).placeNearTarget().text(AllLangMessages.ANCHOR_PONDER_RANGE).pointAt(flightAnchorSelect.getCenter());
         scene.idle(100);
 
         scene.world().setKineticSpeed(util.select().everywhere(), 128.0F);
-        scene.overlay().showText(1000).placeNearTarget().text("Higher speeds cover a much higher surface area.").pointAt(flightAnchorSelect.getCenter());
+        scene.overlay().showText(1000).placeNearTarget().text(AllLangMessages.ANCHOR_PONDER_COVERAGE).pointAt(flightAnchorSelect.getCenter());
         scene.idle(100);
 
         scene.markAsFinished();

@@ -20,13 +20,13 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import com.vice.balancedflight.content.flightAnchor.render.*;
 import software.bernie.geckolib.util.RenderUtil;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FlightAnchorEntity extends KineticBlockEntity implements GeoBlockEntity
 {
-    public static Map<BlockPos, FlightAnchorEntity> ActiveAnchors = new HashMap<>();
+    public static final Set<FlightAnchorEntity> ActiveAnchors = ConcurrentHashMap.newKeySet();
 
     List<BeaconBlockEntity.BeaconBeamSection> beamSections = Lists.newArrayList();
     List<BeaconBlockEntity.BeaconBeamSection> checkingBeamSections = Lists.newArrayList();

@@ -2,40 +2,70 @@ package com.vice.balancedflight.content.flightAnchor;
 
 import com.vice.balancedflight.content.flightAnchor.entity.FlightAnchorEntity;
 import com.vice.balancedflight.foundation.compat.AscendedRingCurio;
+import com.vice.balancedflight.foundation.compat.SableCompat;
 import com.vice.balancedflight.foundation.config.BalancedFlightConfig;
-import net.minecraft.core.Vec3i;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.Map;
+import java.util.WeakHashMap;
+
 public class FlightController
 {
+    private static final String FLIGHT_GRANTED = "balancedflight:flight_granted";
+    private static final Map<Player, MobEffectInstance> slowFallingEffects = new WeakHashMap<>();
+
     public static void tick(Player player)
     {
+        // Client-only effects can linger at 0:00 because removal is synchronized by the server.
+        if (player.level().isClientSide)
+            return;
+
+        if (player.isCreative() || player.isSpectator()) {
+            player.getPersistentData().remove(FLIGHT_GRANTED);
+            removeOwnSlowFalling(player);
+            return;
+        }
+
+        if (!BalancedFlightConfig.enableSlowFallingOnFlightLoss.get())
+            removeOwnSlowFalling(player);
+
         FlightMode allowed = AllowedFlightModes(player, false);
 
         switch (allowed)
         {
             case None, Elytra -> {
-                if (!player.isCreative() && player.getAbilities().mayfly)
+                if (player.getPersistentData().getBoolean(FLIGHT_GRANTED))
                 {
+                    player.getPersistentData().remove(FLIGHT_GRANTED);
+                    boolean wasFlying = player.getAbilities().flying;
                     stopFlying(player);
-                    // handle falling out of sky
-                    player.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 200));
+                    if (wasFlying && BalancedFlightConfig.enableSlowFallingOnFlightLoss.get()
+                            && !player.hasEffect(MobEffects.SLOW_FALLING)) {
+                        MobEffectInstance effect = new MobEffectInstance(MobEffects.SLOW_FALLING, 200);
+                        if (player.addEffect(effect))
+                            slowFallingEffects.put(player, effect);
+                    }
                 }
             }
             case Creative, Both -> {
-
+                removeOwnSlowFalling(player);
                 if (!player.getAbilities().mayfly) {
                     startFlying(player);
-                    // handle removing effect cleanly
-                    if (player.hasEffect(MobEffects.SLOW_FALLING))
-                        player.removeEffect(MobEffects.SLOW_FALLING);
+                    player.getPersistentData().putBoolean(FLIGHT_GRANTED, true);
                 }
             }
         }
+    }
+
+    private static void removeOwnSlowFalling(Player player) {
+        MobEffectInstance effect = slowFallingEffects.remove(player);
+        if (effect != null && player.getEffect(MobEffects.SLOW_FALLING) == effect
+                && effect.getAmplifier() == 0 && effect.endsWithin(200))
+            player.removeEffect(MobEffects.SLOW_FALLING);
     }
 
     public static void startFlying(Player player) {
@@ -96,21 +126,19 @@ public class FlightController
 
     private static boolean IsWithinFlightRange(Player player)
     {
-        if (player.level().dimension() != Level.OVERWORLD)
+        if (!SableCompat.allowsAnchorFlightInLevel(player))
             return false;
 
         double anchorDistanceMultiplier = BalancedFlightConfig.anchorDistanceMultiplier.get();
 
-        return FlightAnchorEntity.ActiveAnchors
-                .entrySet()
-                .stream()
-                .anyMatch(anchor -> distSqr(anchor.getKey(), player.position()) < (anchorDistanceMultiplier * anchor.getValue().getSpeed()) * (anchorDistanceMultiplier * anchor.getValue().getSpeed()));
-    }
-
-    private static double distSqr(Vec3i vec, Vec3 other) {
-        double d1 = (double)vec.getX() - other.x;
-        double d3 = (double)vec.getZ() - other.z;
-        return d1 * d1 + d3 * d3;
+        Level level = player.level();
+        Vec3 playerPos = player.position();
+        return FlightAnchorEntity.ActiveAnchors.stream()
+                .filter(anchor -> anchor.getLevel() == level && !anchor.isRemoved())
+                .anyMatch(anchor -> {
+                    double radius = anchorDistanceMultiplier * anchor.getSpeed();
+                    return SableCompat.horizontalDistanceSqr(level, playerPos, anchor.getBlockPos()) < radius * radius;
+                });
     }
 
     public enum FlightMode {

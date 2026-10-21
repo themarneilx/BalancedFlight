@@ -18,7 +18,7 @@ public class AllPonderScenes
                 .addToIndex()
                 .item(BalancedFlight.FLIGHT_ANCHOR_BLOCK.get())
                 .title("Flight Anchor")
-                .description("Powered flight with Rotational Force")
+                .description(AllLangMessages.ANCHOR_PONDER_TITLE)
                 .register();
 
         HELPER.addToTag(FLIGHT_ANCHOR)

@@ -3,7 +3,8 @@ package com.vice.balancedflight.foundation.compat;
 import net.neoforged.fml.ModList;
 
 public enum ExternalMods {
-    CURIOS("curios");
+    CURIOS("curios"),
+    SABLE("sable");
 
     private final boolean loaded;
 

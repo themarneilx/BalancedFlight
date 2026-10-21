@@ -140,6 +140,8 @@ dependencies {
 }
 
 jar {
+    from('LICENSE')
+    from('NOTICE')
     manifest {
         attributes([
                 "Specification-Title"     : mod_id,

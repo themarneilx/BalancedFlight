@@ -45,15 +45,14 @@ public class FlightAnchorBehaviour extends BlockEntityBehaviour
         
         if (!active)
         {
-            FlightAnchorEntity.ActiveAnchors.remove(getPos());
+            FlightAnchorEntity.ActiveAnchors.remove((FlightAnchorEntity) blockEntity);
             playSound(getWorld(), getPos(), SoundEvents.BEACON_DEACTIVATE);
             return;
         }
 
-        if (FlightAnchorEntity.ActiveAnchors.containsKey(getPos()))
+        if (!FlightAnchorEntity.ActiveAnchors.add((FlightAnchorEntity) blockEntity))
             return;
 
-        FlightAnchorEntity.ActiveAnchors.put(getPos(), (FlightAnchorEntity) blockEntity);
         playSound(getWorld(), getPos(), SoundEvents.BEACON_ACTIVATE);
     }
 

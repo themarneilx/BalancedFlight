@@ -2,6 +2,7 @@ package com.vice.balancedflight.content.flightAnchor;
 
 import com.vice.balancedflight.foundation.render.AnimatedBlockItem;
 import com.vice.balancedflight.AllGeckoRenderers;
+import com.vice.balancedflight.foundation.compat.SableCompat;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -23,6 +24,9 @@ public class FlightAnchorItem extends AnimatedBlockItem<FlightAnchorItem>
         super.appendHoverText(stack, context, tooltip, p_41424_);
 
         tooltip.add(Component.literal("Allows flight around it based on how much RPM is powering it.").withStyle(ChatFormatting.WHITE));
-        tooltip.add(Component.literal("Only works in the overworld.").withStyle(ChatFormatting.RED));
+        if (SableCompat.isLoaded())
+            tooltip.add(Component.translatable("tooltip.balancedflight.flight_anchor.sable").withStyle(ChatFormatting.GRAY));
+        else
+            tooltip.add(Component.literal("Only works in the overworld.").withStyle(ChatFormatting.RED));
     }
 }
